@@ -3,7 +3,7 @@
 (function () {
   "use strict";
   if (!/\.github\.io$/.test(location.hostname)) return;
-  var KEY = "nb-demo-v2", real = window.fetch.bind(window);
+  var KEY = "nb-demo-v3", real = window.fetch.bind(window);
   var CATS = ["laptops", "desktops", "monitors", "printers", "network", "peripherals", "multimedia", "storage", "gaming", "pos", "components"];
   var CAT_LABEL = ["Laptops", "Desktop PCs", "Monitors", "Printers & ink", "Wi-Fi & networking", "Keyboards & mice", "Multimedia", "Storage & flash", "Gaming", "Point of sale", "Components & power"];
   var CATS2 = CATS.map(function (c, i) { return [c, CAT_LABEL[i]]; });
@@ -14,7 +14,7 @@
   var money = function (v) { return v === "" || v == null ? null : Math.max(0, Math.round(+v)) || null; };
   var db; try { db = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
   var ready = db ? Promise.resolve() : real("../data/seed.json").then(function (r) { return r.json(); }).then(function (s) {
-    db = { products: s.products, notice: s.notice || "", users: [{ username: "owner", role: "owner", pass: "ab0511abc" }, { username: "staff", role: "staff", pass: "ab0511abc" }] };
+    db = { products: s.products, notice: s.notice || "", users: [{ username: "owner", role: "owner", pass: "0511abc" }, { username: "staff", role: "staff", pass: "0511abc" }] };
   });
   function save() { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch (e) {} }
 
@@ -77,7 +77,7 @@
   document.addEventListener("DOMContentLoaded", function () {
     var bar = document.createElement("div");
     bar.style.cssText = "background:#fff3cd;color:#5b4300;font:14px/1.4 system-ui,sans-serif;padding:.6rem 1rem;text-align:center;border-bottom:1px solid #e6cf85";
-    bar.innerHTML = "<b>Practice copy.</b> Sign in as <b>owner</b> or <b>staff</b>, password <b>ab0511abc</b>. Nothing here is real and changes stay on this device only. ";
+    bar.innerHTML = "<b>Practice copy.</b> Sign in as <b>owner</b> or <b>staff</b>, password <b>0511abc</b>. Nothing here is real and changes stay on this device only. ";
     var b = document.createElement("button"); b.textContent = "Start over"; b.style.cssText = "margin-left:.6rem;padding:.2rem .7rem;border:1px solid #b89400;border-radius:999px;background:#fff;color:#5b4300;cursor:pointer";
     b.onclick = function () { try { localStorage.removeItem(KEY); sessionStorage.clear(); } catch (e) {} location.reload(); };
     bar.appendChild(b); document.body.insertBefore(bar, document.body.firstChild);
