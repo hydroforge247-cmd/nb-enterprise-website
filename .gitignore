@@ -1,0 +1,8 @@
+﻿# private data and working files stay on this computer
+server/data/
+work/
+qa/
+review/
+studio.json
+*.log
+*.err
