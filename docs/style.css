@@ -28,14 +28,17 @@ h3 { font-size: 1.1rem; font-weight: 750; margin: 26px 0 10px; }
 .notice { background: var(--orange); color: #fff; text-align: center; font-weight: 750; padding: 9px 16px; font-size: .95rem; }
 
 .top { position: sticky; top: 0; z-index: 20; background: rgba(255,255,255,.94); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
-.top__in { display: flex; align-items: center; gap: 16px; height: 64px; }
+.top__in { display: flex; align-items: center; gap: 10px 12px; min-height: 64px; flex-wrap: wrap; }
+.top__logo { flex: none; }
 .top__logo img { height: 46px; width: auto; border-radius: 6px; }
 .top__nav { display: none; gap: 22px; margin-left: auto; }
 .top__nav a { color: var(--ink); text-decoration: none; font-weight: 700; font-size: .95rem; }
 .top__nav a:hover { color: var(--blue); }
-.top .btn--call { margin-left: auto; min-height: 44px; padding: 0 14px; }
+.top__staff { margin-left: auto; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; padding: 0 14px; border-radius: 999px; background: var(--blue-l); color: var(--blue-d); text-decoration: none; font-weight: 750; font-size: .88rem; white-space: nowrap; flex: none; }
+.top__staff:hover { background: #d5e3fb; }
+.top .btn--call { min-height: 44px; padding: 0 14px; flex: none; }
 .top .btn--call span { display: none; }
-@media (min-width: 900px) { .top__nav { display: flex; } .top .btn--call { margin-left: 8px; } .top .btn--call span { display: inline; } }
+@media (min-width: 900px) { .top__nav { display: flex; } .top__staff { margin-left: 8px; } .top .btn--call { margin-left: 8px; } .top .btn--call span { display: inline; } }
 
 .hero { background: radial-gradient(120% 90% at 85% 10%, #2b63d1 0%, var(--blue) 45%, var(--blue-d) 100%); color: #fff; overflow: hidden; }
 .hero__in { display: grid; gap: 28px; padding: 40px 0 44px; }
@@ -79,7 +82,7 @@ section { padding: 64px 0; }
 .card__img svg { width: 46%; height: 46%; fill: none; stroke: #9fb3d6; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
 
 /* ---------- light / dark switch (Clean: owner preview only) ---------- */
-.looks { position: fixed; left: 12px; bottom: 16px; z-index: 30; display: flex; align-items: center; gap: 4px; background: #fff; border-radius: 999px; padding: 4px; box-shadow: 0 10px 26px -10px rgba(0,0,0,.45); font: 700 .78rem var(--text); }
+.looks { position: fixed; left: max(12px, env(safe-area-inset-left)); bottom: max(16px, env(safe-area-inset-bottom)); z-index: 50; display: flex; align-items: center; gap: 4px; background: #fff; border-radius: 999px; padding: 4px; box-shadow: 0 10px 26px -10px rgba(0,0,0,.45); font: 700 .78rem var(--text); pointer-events: auto; }
 .looks span { padding: 0 6px 0 8px; color: var(--soft); }
 .looks button { border: 0; border-radius: 999px; min-height: 44px; min-width: 44px; padding: 0 11px; font: 700 .8rem var(--text); background: transparent; color: var(--ink); cursor: pointer; }
 .looks button[aria-pressed="true"] { background: var(--blue); color: #fff; }
@@ -97,6 +100,7 @@ section { padding: 64px 0; }
 /* look 3, "Dark": night-mode tech store with orange highlights */
 [data-look="dark"] body { background: #0b1220; color: #e6ecf6; }
 [data-look="dark"] .top { background: rgba(11,18,32,.92); border-color: #1d2a44; } [data-look="dark"] .top__nav a { color: #e6ecf6; }
+[data-look="dark"] .top__staff { background: #131e35; color: #e6ecf6; box-shadow: inset 0 0 0 1px #22314f; } [data-look="dark"] .top__staff:hover { background: #1a2744; }
 [data-look="dark"] .hero { background: radial-gradient(90% 80% at 80% 0%, #1b2f63 0%, #0b1220 70%); }
 [data-look="dark"] .hero h1 span { color: var(--orange); }
 [data-look="dark"] .specials, [data-look="dark"] .contact { background: #0f182b; }
@@ -247,7 +251,7 @@ html { scroll-padding-top: 118px; } @media (min-width: 900px) { html { scroll-pa
 @media (max-width: 699px) { .tower { width: 200px; height: 250px; } .tower__box { scale: .85; } }
 @media (prefers-reduced-motion: reduce) { .tower__box, .tower .glass { transition: none; } }
 
-.looks[hidden] { display: none; }
+.looks[hidden] { display: flex; } /* Light/Dark stay on; only the Clean button uses hidden */
 
 /* round 2 (Grok): */
 .subnav a { min-height: 44px; }

@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>NB Enterprise Staff</title>
+<style>
+:root{--blue:#1747a6;--blue-d:#0d2f73;--orange:#f26b1d;--ink:#0f1b2d;--soft:#4d5b70;--line:#dde4ef;--mist:#f4f7fc;--red:#b3261e;--ok:#178a45}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--mist);color:var(--ink);padding-bottom:4rem}
+header{background:var(--blue-d);color:#fff;padding:.8rem 1rem;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:5;gap:.6rem}
+header b{font-size:1.05rem}header small{opacity:.8}
+nav{display:flex;gap:.4rem;overflow-x:auto;padding:.7rem 1rem;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:56px;z-index:4}
+nav button{flex:none}
+main{max-width:52rem;margin:auto;padding:1rem}
+h1,h2,h3{color:var(--blue-d)}h2{font-size:1.3rem;margin-bottom:.3rem}
+button,.btn{font:700 .9rem system-ui;border:0;border-radius:999px;padding:.65rem 1.1rem;min-height:44px;cursor:pointer;background:var(--orange);color:#fff}
+button.ghost{background:transparent;box-shadow:inset 0 0 0 2px var(--blue);color:var(--blue)}
+button.tab{background:#fff;color:var(--blue-d);box-shadow:inset 0 0 0 1.5px var(--line)}
+button.tab.on{background:var(--blue);color:#fff}
+button.danger{background:var(--red);color:#fff}
+button.sm{padding:.4rem .8rem;min-height:36px;font-size:.82rem}
+label{display:grid;gap:.25rem;font-size:.85rem;font-weight:700;color:var(--blue-d);margin-bottom:.7rem}
+label.check{display:flex;align-items:center;gap:.5rem;font-weight:600;color:var(--ink)}
+input,select,textarea{font:400 1rem system-ui;padding:.65rem .75rem;border:1.5px solid var(--line);border-radius:10px;background:#fff;width:100%;min-height:44px;color:var(--ink)}
+input[type=checkbox]{width:22px;height:22px;min-height:0;accent-color:var(--blue)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}.two>*{min-width:0}
+.card{background:#fff;border-radius:14px;padding:1rem;margin-bottom:.8rem;box-shadow:0 4px 16px #0d2f7314}
+.row{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.badge{font-size:.72rem;font-weight:700;padding:.2rem .6rem;border-radius:999px;background:#eef1f6;text-transform:uppercase;letter-spacing:.05em}
+.b-special{background:var(--orange);color:#fff}.b-hidden{background:#444;color:#fff}.b-in{background:#d9f2e2;color:var(--ok)}.b-order{background:#ffeccc;color:#8a5200}.b-out{background:#f6d6d4;color:var(--red)}
+.muted{color:var(--soft);font-size:.85rem}
+.msg{padding:.6rem .8rem;border-radius:10px;margin-bottom:.8rem;font-weight:700}
+.msg.err{background:#b3261e18;color:var(--red)}.msg.ok{background:#178a4518;color:var(--ok)}
+.item{display:flex;gap:.8rem;align-items:flex-start}
+.item img,.item .ph{width:76px;height:76px;object-fit:contain;border-radius:10px;background:var(--mist);flex:none}
+.item .ph{display:grid;place-items:center;font-size:.7rem;color:var(--soft);text-align:center}
+.item h3{font-size:1rem;margin:.2rem 0;overflow-wrap:anywhere;color:var(--ink)}
+.price{font-weight:800}
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1rem}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="demo-api.js"></script>
+<script>
+(function () {
+  "use strict";
+  var app = document.getElementById("app"), token = null, me = null, state = { tab: "products", cat: "all", q: "", edit: null };
+  try { token = sessionStorage.getItem("nb-token"); } catch (e) {}
+  function h(tag, attrs) {
+    var el = document.createElement(tag);
+    Object.keys(attrs || {}).forEach(function (k) { if (k === "on") Object.keys(attrs.on).forEach(function (ev) { el.addEventListener(ev, attrs.on[ev]); }); else if (k === "class") el.className = attrs[k]; else if (attrs[k] !== false && attrs[k] != null) el.setAttribute(k, attrs[k]); });
+    [].slice.call(arguments, 2).forEach(function add(c) { if (Array.isArray(c)) c.forEach(add); else if (c != null && c !== false) el.appendChild(typeof c === "object" ? c : document.createTextNode(c)); });
+    return el;
+  }
+  function api(method, url, data) {
+    return fetch(url, { method: method, headers: { "Content-Type": "application/json", Authorization: "Bearer " + (token || "") }, body: data ? JSON.stringify(data) : undefined })
+      .then(function (r) { return r.json().then(function (j) { if (r.status === 401 && token) signOut(); if (!r.ok) throw new Error(j.error || "Error"); return j; }); });
+  }
+  function signOut() { token = null; me = null; try { sessionStorage.removeItem("nb-token"); } catch (e) {} render(); }
+  function note(el, text, cls) { var m = h("div", { class: "msg " + (cls || "ok") }, text); el.prepend(m); setTimeout(function () { m.remove(); }, 4000); }
+  var rand = function (n) { return "R" + Number(n).toLocaleString("en-ZA"); };
+  var src = function (u) { return /^(\/|https?:|data:)/.test(u) ? u : "../" + u; }; // starter photos live under the site folder
+  var STOCK = [["in", "In stock"], ["order", "On order"], ["out", "Out of stock"]];
+
+  function render() { app.innerHTML = ""; if (!token) return login(); api("GET", "/api/admin/me").then(function (m) { me = m; shell(); }).catch(function () {}); }
+  function login() {
+    var err = h("div", { class: "msg err", hidden: true }), u = h("input", { autocomplete: "username", required: true }), p = h("input", { type: "password", autocomplete: "current-password", required: true });
+    app.appendChild(h("main", {}, h("h1", {}, "NB Enterprise"), h("p", { class: "muted", style: "margin-bottom:1rem" }, "Staff sign-in"), err,
+      h("form", { on: { submit: function (e) { e.preventDefault(); api("POST", "/api/login", { username: u.value, password: p.value }).then(function (r) { token = r.token; try { sessionStorage.setItem("nb-token", token); } catch (x) {} render(); }).catch(function (x) { err.hidden = false; err.textContent = x.message; }); } } },
+        h("label", {}, "Username", u), h("label", {}, "Password", p), h("button", { type: "submit" }, "Sign in")),
+      h("p", { class: "muted", style: "margin-top:1.2rem" }, h("a", { href: "/" }, "← Back to the website"))));
+  }
+  function shell() {
+    app.innerHTML = "";
+    var tabs = [["products", "Products"], ["form", state.edit ? "Edit product" : "Add product"], ["notice", "Shop notice"]];
+    if (me.role === "owner") tabs.push(["users", "Staff logins"]);
+    var body = h("main", {});
+    app.appendChild(h("header", {}, h("div", {}, h("b", {}, "NB Enterprise"), " ", h("small", {}, me.username + " (" + me.role + ")")), h("div", { class: "row" }, h("a", { href: "/", target: "_blank", style: "color:#fff;font-size:.85rem" }, "View site"), h("button", { class: "ghost sm", style: "color:#fff;box-shadow:inset 0 0 0 2px #fff", on: { click: signOut } }, "Sign out"))));
+    app.appendChild(h("nav", {}, tabs.map(function (t) { return h("button", { class: "tab" + (state.tab === t[0] ? " on" : ""), on: { click: function () { if (t[0] !== "form") state.edit = null; state.tab = t[0]; shell(); } } }, t[1]); })));
+    app.appendChild(body);
+    ({ products: viewProducts, form: viewForm, notice: viewNotice, users: viewUsers })[state.tab](body);
+  }
+
+  /* ----- product list ----- */
+  function viewProducts(el) {
+    api("GET", "/api/admin/products").then(function (d) {
+      var cats = {}; d.cats.forEach(function (c) { cats[c[0]] = c[1]; });
+      var q = h("input", { type: "search", placeholder: "Search products", value: state.q }), cat = h("select", {}, h("option", { value: "all" }, "All categories"), d.cats.map(function (c) { var o = h("option", { value: c[0] }, c[1]); if (state.cat === c[0]) o.selected = true; return o; }));
+      var listEl = h("div", {});
+      el.append(h("div", { class: "row", style: "justify-content:space-between;margin-bottom:.8rem" }, h("h2", {}, "Products (" + d.products.length + ")"), h("button", { on: { click: function () { state.edit = null; state.tab = "form"; shell(); } } }, "+ Add product")),
+        h("p", { class: "muted", style: "margin-bottom:.8rem" }, "Changes show on the website straight away. Tick Special to put a product in the Specials row at the top of the site."),
+        h("div", { class: "tools" }, q, cat), listEl);
+      function draw() {
+        listEl.innerHTML = "";
+        var s = state.q.toLowerCase(), items = d.products.filter(function (p) { return (state.cat === "all" || p.cat === state.cat) && (!s || (p.name + " " + p.brand).toLowerCase().indexOf(s) > -1); });
+        if (!items.length) listEl.appendChild(h("p", { class: "muted" }, "No products here yet."));
+        items.forEach(function (p) {
+          var ended = p.special && p.specialTo && p.specialTo < d.today;
+          var stock = h("select", { style: "width:auto;min-height:36px;padding:.3rem .5rem", "aria-label": "Stock" }, STOCK.map(function (s) { var o = h("option", { value: s[0] }, s[1]); if (p.stock === s[0]) o.selected = true; return o; }));
+          stock.addEventListener("change", function () { patch(p, { stock: stock.value }); });
+          var special = h("input", { type: "checkbox" }); special.checked = !!p.special; special.addEventListener("change", function () { patch(p, { special: special.checked }); });
+          listEl.appendChild(h("div", { class: "card item" }, p.image ? h("img", { src: src(p.image), alt: "" }) : h("div", { class: "ph" }, "No photo"),
+            h("div", { style: "min-width:0;flex:1" }, h("div", { class: "row" }, h("span", { class: "badge" }, cats[p.cat] || p.cat), p.special && !ended ? h("span", { class: "badge b-special" }, "Special") : null, ended ? h("span", { class: "badge" }, "Special ended") : null, p.hidden ? h("span", { class: "badge b-hidden" }, "Hidden") : null),
+              h("h3", {}, (p.brand && p.name.toLowerCase().indexOf(p.brand.toLowerCase()) !== 0 ? p.brand + " · " : "") + p.name), h("div", { class: "price" }, p.price ? rand(p.price) : "Ask for price", p.was ? h("span", { class: "muted" }, "  was " + rand(p.was)) : null),
+              h("div", { class: "row", style: "margin-top:.6rem" }, stock, h("label", { class: "check", style: "margin:0" }, special, "Special"),
+                h("button", { class: "ghost sm", on: { click: function () { state.edit = p; state.tab = "form"; shell(); } } }, "Edit"),
+                h("button", { class: "ghost sm", on: { click: function () { patch(p, { hidden: !p.hidden }); } } }, p.hidden ? "Show" : "Hide"),
+                h("button", { class: "danger sm", on: { click: function () { if (confirm("Remove \"" + p.name + "\" for good?")) api("DELETE", "/api/admin/products/" + p.id).then(shell).catch(function (e) { alert(e.message); }); } } }, "Remove")))));
+        });
+      }
+      function patch(p, change) { api("PATCH", "/api/admin/products/" + p.id, change).then(function (np) { Object.assign(p, np); draw(); }).catch(function (e) { alert(e.message); }); }
+      q.addEventListener("input", function () { state.q = q.value; draw(); });
+      cat.addEventListener("change", function () { state.cat = cat.value; draw(); });
+      draw();
+    }).catch(function (e) { el.appendChild(h("div", { class: "msg err" }, e.message)); });
+  }
+
+  /* ----- add / edit ----- */
+  // shrink a chosen photo to max 1200px in the browser so phone uploads stay small
+  function shrink(file) {
+    return new Promise(function (ok, no) {
+      var img = new Image(), url = URL.createObjectURL(file);
+      img.onload = function () { var k = Math.min(1, 1200 / Math.max(img.width, img.height)), c = document.createElement("canvas"); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); var x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url); ok(c.toDataURL("image/jpeg", 0.86)); };
+      img.onerror = function () { URL.revokeObjectURL(url); no(new Error("That file is not a photo this browser can open. Try a JPG or PNG.")); };
+      img.src = url;
+    });
+  }
+  function viewForm(el) {
+    api("GET", "/api/admin/products").then(function (d) {
+      var p = state.edit, photo = null, removeImage = false;
+      var f = { name: h("input", { maxlength: 120, required: true }), brand: h("input", { maxlength: 40, placeholder: "e.g. HP, Asus, Logitech" }), cat: h("select", { required: true }, h("option", { value: "" }, "Pick a category"), d.cats.map(function (c) { return h("option", { value: c[0] }, c[1]); })),
+        price: h("input", { type: "number", min: 0, inputmode: "numeric", placeholder: "Empty = ask" }), was: h("input", { type: "number", min: 0, inputmode: "numeric", placeholder: "Optional" }),
+        blurb: h("textarea", { rows: 3, maxlength: 400, placeholder: "Short description or main specs" }), stock: h("select", {}, STOCK.map(function (s) { return h("option", { value: s[0] }, s[1]); })),
+        special: h("input", { type: "checkbox" }), specialTo: h("input", { type: "date" }), file: h("input", { type: "file", accept: "image/*" }) };
+      if (p) { ["name", "brand", "cat", "price", "was", "blurb", "stock", "specialTo"].forEach(function (k) { f[k].value = p[k] == null ? "" : p[k]; }); f.special.checked = !!p.special; }
+      var prev = h("img", { alt: "", style: "max-width:100%;max-height:220px;border-radius:10px;margin-bottom:.6rem;background:#f4f7fc", hidden: !(p && p.image), src: p && p.image ? src(p.image) : null });
+      var rm = h("button", { type: "button", class: "ghost sm", hidden: !(p && p.image), style: "margin-bottom:.8rem" }, "Remove photo");
+      f.file.addEventListener("change", function () { var file = f.file.files[0]; if (!file) return; shrink(file).then(function (u) { photo = u; removeImage = false; prev.src = u; prev.hidden = false; rm.hidden = false; }).catch(function (e) { f.file.value = ""; note(form, e.message, "err"); }); });
+      rm.addEventListener("click", function () { photo = null; removeImage = true; f.file.value = ""; prev.hidden = true; rm.hidden = true; });
+      var submit = h("button", { type: "submit" }, p ? "Save changes" : "Add to the website");
+      var form = h("form", { class: "card", on: { submit: function (e) {
+        e.preventDefault(); submit.disabled = true;
+        var data = { name: f.name.value, brand: f.brand.value, cat: f.cat.value, price: f.price.value, was: f.was.value, blurb: f.blurb.value, stock: f.stock.value, special: f.special.checked, specialTo: f.specialTo.value, image: photo, removeImage: removeImage };
+        api(p ? "PUT" : "POST", "/api/admin/products" + (p ? "/" + p.id : ""), data).then(function () { state.edit = null; state.tab = "products"; shell(); }).catch(function (er) { submit.disabled = false; note(form, er.message, "err"); });
+      } } }, h("h2", { style: "margin-bottom:.8rem" }, p ? "Edit product" : "Add a product"),
+        h("label", {}, "Product name", f.name), h("div", { class: "two" }, h("label", {}, "Brand", f.brand), h("label", {}, "Category", f.cat)),
+        h("div", { class: "two" }, h("label", {}, "Price (R)", f.price), h("label", {}, "Old price (R), shows crossed out", f.was)),
+        h("label", {}, "Description", f.blurb), h("label", {}, "Stock", f.stock),
+        h("label", { class: "check" }, f.special, "Show in Specials"), h("label", {}, "Special ends (optional, it comes off by itself after this date)", f.specialTo),
+        h("label", {}, "Photo", f.file), prev, rm, h("div", { class: "row" }, submit, h("button", { type: "button", class: "ghost", on: { click: function () { state.edit = null; state.tab = "products"; shell(); } } }, "Cancel")));
+      el.appendChild(form);
+    });
+  }
+
+  /* ----- notice bar ----- */
+  function viewNotice(el) {
+    api("GET", "/api/admin/notice").then(function (r) {
+      var t = h("input", { maxlength: 160, value: r.notice, placeholder: "e.g. Black Friday deals start 28 November!" });
+      var card = h("div", { class: "card" }, h("h2", {}, "Shop notice"), h("p", { class: "muted", style: "margin-bottom:1rem" }, "One short line in an orange bar across the top of the website. Leave it empty to hide the bar."),
+        h("label", {}, "Notice", t), h("button", { on: { click: function () { api("PUT", "/api/admin/notice", { notice: t.value }).then(function () { note(card, "Saved."); }).catch(function (e) { note(card, e.message, "err"); }); } } }, "Save notice"));
+      el.appendChild(card);
+    });
+  }
+
+  /* ----- staff logins (owner) ----- */
+  function viewUsers(el) {
+    var users = h("div", { class: "card" });
+    function draw() { api("GET", "/api/admin/users").then(function (r) { users.innerHTML = ""; users.appendChild(h("h2", { style: "margin-bottom:.6rem" }, "Staff logins"));
+      r.users.forEach(function (u) { users.appendChild(h("div", { class: "row", style: "justify-content:space-between;margin-bottom:.4rem" }, h("span", {}, u.username + " (" + u.role + ")"), u.username === me.username ? null : h("button", { class: "danger sm", on: { click: function () { if (confirm("Remove " + u.username + "?")) api("DELETE", "/api/admin/users/" + encodeURIComponent(u.username)).then(draw); } } }, "Remove"))); });
+      var un = h("input", { placeholder: "username" }), pw = h("input", { type: "password", placeholder: "password (8+ characters)" });
+      users.appendChild(h("div", { style: "margin-top:.8rem" }, h("p", { class: "muted" }, "Add a staff member, or type an existing username (including your own) to set a new password."), h("div", { class: "two", style: "margin:.5rem 0" }, un, pw), h("button", { class: "sm", on: { click: function () { api("POST", "/api/admin/users", { username: un.value, password: pw.value }).then(function () { draw(); note(users, "Saved."); }).catch(function (e) { note(users, e.message, "err"); }); } } }, "Save staff login")));
+    }); }
+    draw(); el.appendChild(users);
+  }
+  render();
+})();
+</script>
+</body>
+</html>

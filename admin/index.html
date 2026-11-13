@@ -44,6 +44,7 @@ input[type=checkbox]{width:22px;height:22px;min-height:0;accent-color:var(--blue
 </head>
 <body>
 <div id="app"></div>
+<script src="demo-api.js"></script>
 <script>
 (function () {
   "use strict";
@@ -62,7 +63,7 @@ input[type=checkbox]{width:22px;height:22px;min-height:0;accent-color:var(--blue
   function signOut() { token = null; me = null; try { sessionStorage.removeItem("nb-token"); } catch (e) {} render(); }
   function note(el, text, cls) { var m = h("div", { class: "msg " + (cls || "ok") }, text); el.prepend(m); setTimeout(function () { m.remove(); }, 4000); }
   var rand = function (n) { return "R" + Number(n).toLocaleString("en-ZA"); };
-  var src = function (u) { return /^(\/|https?:)/.test(u) ? u : "/" + u; }; // starter photos live under the site folder
+  var src = function (u) { return /^(\/|https?:|data:)/.test(u) ? u : "../" + u; }; // starter photos live under the site folder
   var STOCK = [["in", "In stock"], ["order", "On order"], ["out", "Out of stock"]];
 
   function render() { app.innerHTML = ""; if (!token) return login(); api("GET", "/api/admin/me").then(function (m) { me = m; shell(); }).catch(function () {}); }

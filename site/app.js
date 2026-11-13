@@ -16,7 +16,14 @@
 
   // live catalogue from the shop's server; the static preview falls back to the starter list
   fetch("/api/public").then(function (r) { if (!r.ok) throw 0; return r.json(); })
-    .catch(function () { return fetch("data/seed.json").then(function (r) { return r.json(); }).then(function (s) { return { cats: FALLBACK_CATS, notice: s.notice, products: s.products }; }); })
+    .catch(function () {
+      document.querySelectorAll('a[href="admin/"]').forEach(function (l) {
+        l.removeAttribute("href");
+        l.setAttribute("role", "note");
+        l.title = "Staff login works on the shop computer";
+      });
+      return fetch("data/seed.json").then(function (r) { return r.json(); }).then(function (s) { return { cats: FALLBACK_CATS, notice: s.notice, products: s.products }; });
+    })
     .then(function (d) { state.data = d; draw(); })
     .catch(function () { document.getElementById("grid").innerHTML = '<p class="empty">The product list could not load. Please call us on 018 294 4382.</p>'; });
 
